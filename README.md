@@ -8,6 +8,16 @@ This repository contains configuration files for various development tools and a
 
 ### Terminal & Shell
 
+#### `zshrc_content.sh` - Zsh Configuration Content
+Shell function definitions and configuration snippets for zsh shell.
+
+**Features:**
+- `fv()` function - File viewer with fuzzy finder integration
+- Combines `fd`, `fzf`, and `bat` for enhanced file selection
+- Preview window with syntax highlighting
+- Tmux integration for seamless workflow
+- Opens files directly in Neovim
+
 #### `.tmux.conf` - Tmux Configuration
 Terminal multiplexer configuration with custom keybindings and enhanced functionality.
 
@@ -95,6 +105,14 @@ git clone https://github.com/[your-username]/.dotfiles.git ~/.dotfiles
 
 2. Create symbolic links to the configuration files:
 
+### Zsh Configuration
+```bash
+# Add the function to your .zshrc
+cat ~/.dotfiles/zshrc_content.sh >> ~/.zshrc
+# Or source it directly
+echo "source ~/.dotfiles/zshrc_content.sh" >> ~/.zshrc
+```
+
 ### Tmux
 ```bash
 ln -sf ~/.dotfiles/.tmux.conf ~/.tmux.conf
@@ -116,6 +134,14 @@ ln -sf ~/.dotfiles/package-info.lua ~/.config/nvim/lua/plugins/package-info.lua
 ```
 
 ## Requirements
+
+### Zsh Configuration
+- Zsh shell
+- `fd` - Fast find alternative
+- `fzf` - Fuzzy finder
+- `bat` - Cat alternative with syntax highlighting
+- `tmux` (optional, for tmux integration)
+- Neovim
 
 ### Tmux
 - Tmux 2.9+ recommended
