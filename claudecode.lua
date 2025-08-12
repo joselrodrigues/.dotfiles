@@ -20,20 +20,23 @@ return {
     -- Diff management with auto-reopen
     { "<leader>aa", function()
         vim.cmd("ClaudeCodeDiffAccept")
-        -- Auto-reopen Claude after accepting
+        -- Clean old buffers and reopen Claude after accepting
         vim.defer_fn(function()
+          vim.cmd("ClaudeCleanBuffers")
           vim.cmd("ClaudeCodeFocus")
         end, 300)
       end, desc = "Accept diff and reopen Claude" },
     { "<leader>ad", function()
         vim.cmd("ClaudeCodeDiffDeny") 
-        -- Auto-reopen Claude after denying
+        -- Clean old buffers and reopen Claude after denying
         vim.defer_fn(function()
+          vim.cmd("ClaudeCleanBuffers")
           vim.cmd("ClaudeCodeFocus")
         end, 300)
       end, desc = "Deny diff and reopen Claude" },
     -- Custom toggle key
     { "<leader>lc", "<cmd>ClaudeCodeFocus<cr>", desc = "Launch Claude", mode = { "n", "x" } },
+    { "<leader>ax", "<cmd>ClaudeCleanBuffers<cr>", desc = "Clean Claude buffers" },
   },
   opts = {
     -- Server Configuration
@@ -66,7 +69,7 @@ return {
             function(self)
               self:hide()
             end,
-            mode = "t",
+            mode = { "t", "n" },
             desc = "Hide Claude Code",
           },
         },
@@ -85,6 +88,21 @@ return {
   config = function(_, opts)
     require("claudecode").setup(opts)
     
+    -- Command to manually clean Claude buffers
+    vim.api.nvim_create_user_command("ClaudeCleanBuffers", function()
+      local cleaned = 0
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_valid(buf) then
+          local buf_name = vim.api.nvim_buf_get_name(buf)
+          if buf_name:match("Claude Code.*") then
+            pcall(vim.api.nvim_buf_delete, buf, { force = true })
+            cleaned = cleaned + 1
+          end
+        end
+      end
+      vim.notify("Cleaned " .. cleaned .. " Claude buffers", vim.log.levels.INFO)
+    end, { desc = "Clean all Claude Code buffers" })
+    
     -- Simple auto-hide when Claude diff appears
     vim.api.nvim_create_autocmd("BufEnter", {
       pattern = "*",
@@ -92,7 +110,7 @@ return {
         local buf_name = vim.api.nvim_buf_get_name(0)
         
         -- Only trigger on Claude diff buffers
-        if buf_name:match("%(proposed%)$") then
+        if buf_name:match("proposed%)$") then
           vim.notify("Claude diff opened - Use <leader>aa to accept or <leader>ad to deny", vim.log.levels.INFO)
           
           -- Try to hide Claude floating window
