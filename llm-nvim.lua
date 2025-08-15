@@ -13,9 +13,9 @@ return {
 
 		require("llm").setup({
 			-- Your local endpoint configuration
-			url = "",
+			url = os.getenv("COSMOS_API") or "",
 			api_type = "openai",
-			model = "claude-sonnet-4", -- Default model
+			model = "claude-opus-4", -- Default model
 			fetch_key = function()
 				return "dummy" -- Some plugins require non-empty key even for local endpoints
 			end,
@@ -109,7 +109,7 @@ Changes:
 
 					opts = {
 						-- Use your endpoint for chat completions
-						url = "http://192.168.1.81:8150/cosmos/genai-gateway/v1/chat/completions",
+						url = os.getenv("COSMOS_API") .. "/chat/completions",
 						model = "claude-sonnet-4", -- Claude Sonnet 4 for commit messages
 						api_type = "openai",
 						fetch_key = function()
@@ -149,7 +149,7 @@ Changes:
 
 			-- Default options for all requests
 			default_opts = {
-				url = "http://192.168.1.81:8150/cosmos/genai-gateway/v1/chat/completions",
+				url = os.getenv("COSMOS_API") .. "/chat/completions",
 				model = "claude-sonnet-4",
 				max_tokens = 500,
 				temperature = 0.5,

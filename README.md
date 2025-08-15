@@ -25,6 +25,7 @@ Terminal multiplexer configuration with custom keybindings and enhanced function
 - Mouse support enabled
 - Prefix changed from `Ctrl-b` to `Ctrl-a`
 - Intuitive pane splitting with `|` (horizontal) and `-` (vertical)
+- Enhanced split commands preserve current directory and improved positioning
 - Quick config reload with `Prefix + r`
 - Alt + Arrow keys for pane navigation without prefix
 - Vi mode for copy operations
@@ -33,6 +34,11 @@ Terminal multiplexer configuration with custom keybindings and enhanced function
 - Auto-renumber windows on close
 - 256-color terminal support
 - Custom status bar with system load and time
+- Vim-style pane resizing with `Prefix + hjkl`
+- Alternative pane resizing with `Prefix + Shift + arrows`
+- Enhanced scrollback buffer (10,000 lines)
+- Faster key response with zero escape time
+- Focus events enabled for better editor integration
 
 ### Neovim Plugins
 
@@ -67,11 +73,14 @@ General LLM integration for Neovim with support for various AI models.
 
 **Features:**
 - OpenAI-compatible API support
-- Custom endpoint configuration
+- Environment variable configuration (uses `COSMOS_API` environment variable)
 - AI-powered commit message generation for lazygit
 - Smart diff handling (adapts to diff size)
-- Branch-aware commit messages
+- Branch-aware commit messages with conventional commit format
 - Support for large diffs with intelligent summarization
+- Automatic diff size detection (full diff for <10KB, summary for larger)
+- Claude Sonnet 4 model integration for commit messages
+- Flexible window interface for commit message editing
 
 **Key Bindings:**
 - `<leader>gc` - Generate commit message
@@ -95,6 +104,57 @@ Visual package version management for `package.json` files in Neovim.
 - `<leader>cpd` - Delete package
 - `<leader>cpi` - Install package
 - `<leader>cpc` - Change package version
+
+#### `kulala.lua` - REST Client
+HTTP client for testing REST APIs directly from Neovim.
+
+**Features:**
+- Support for HTTP and REST file types
+- Request execution with visual feedback
+- Environment and authentication management
+- Built-in UI for request/response viewing
+- Global keymaps with `<leader>R` prefix
+- LSP support for syntax highlighting
+- 30-second request timeout
+- Scratchpad for quick testing
+
+**Key Bindings:**
+- `<leader>Rs` - Send request
+- `<leader>Ra` - Send all requests
+- `<leader>Rr` - Replay last request
+- `<C-c>` - Cancel request (in HTTP/REST files)
+- `<leader>Ro` - Open Kulala UI
+- `<leader>Rb` - Open scratchpad
+- `<leader>Rf` - Find request
+- `<leader>Re` - Choose environment
+- `<leader>Ru` - Manage authentication
+
+#### `render-markdown.lua` - Enhanced Markdown Rendering
+Real-time markdown rendering with rich visual enhancements in Neovim.
+
+**Features:**
+- Live markdown rendering in normal, command, and terminal modes
+- Anti-conceal functionality for editing
+- Custom heading icons with different levels
+- Enhanced code block rendering with sign column
+- Styled bullet points and checkboxes
+- Blockquote rendering with visual indicators
+- Full-width table rendering
+- GitHub-style callouts (Note, Tip, Important, Warning, Caution)
+- Link visualization with custom icons
+- Sign column integration
+
+**Key Bindings:**
+- `<leader>rm` - Toggle markdown rendering
+
+#### `colorscheme.lua` - TokyoNight Theme Configuration
+Colorscheme configuration for consistent visual theme across Neovim.
+
+**Features:**
+- TokyoNight theme with "storm" variant
+- LazyVim integration
+- Consistent color scheme application
+- Dark theme optimized for extended coding sessions
 
 ## Installation
 
@@ -131,6 +191,9 @@ Or if you prefer symbolic links:
 ln -sf ~/.dotfiles/claudecode.lua ~/.config/nvim/lua/plugins/claudecode.lua
 ln -sf ~/.dotfiles/llm-nvim.lua ~/.config/nvim/lua/plugins/llm-nvim.lua
 ln -sf ~/.dotfiles/package-info.lua ~/.config/nvim/lua/plugins/package-info.lua
+ln -sf ~/.dotfiles/kulala.lua ~/.config/nvim/lua/plugins/kulala.lua
+ln -sf ~/.dotfiles/render-markdown.lua ~/.config/nvim/lua/plugins/render-markdown.lua
+ln -sf ~/.dotfiles/colorscheme.lua ~/.config/nvim/lua/plugins/colorscheme.lua
 ```
 
 ## Requirements
@@ -161,11 +224,25 @@ ln -sf ~/.dotfiles/package-info.lua ~/.config/nvim/lua/plugins/package-info.lua
   - `nvim-lua/plenary.nvim`
   - `MunifTanjim/nui.nvim`
   - Git for commit message generation
+  - `COSMOS_API` environment variable set to your LLM endpoint
   - Compatible LLM endpoint (OpenAI-compatible API)
   
 - **package-info.lua**:
   - `MunifTanjim/nui.nvim`
   - Node.js and npm
+
+- **kulala.lua**:
+  - HTTP and REST file type support
+  - No additional dependencies (self-contained)
+
+- **render-markdown.lua**:
+  - `nvim-treesitter/nvim-treesitter`
+  - `echasnovski/mini.nvim` (for mini.icons)
+  - Treesitter parsers for markdown
+
+- **colorscheme.lua**:
+  - `folke/tokyonight.nvim`
+  - LazyVim (if using LazyVim distribution)
 
 ## Customization
 
