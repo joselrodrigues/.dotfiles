@@ -61,42 +61,46 @@ return {
 						end
 
 						return string.format(
-							[[You are an expert at following the Conventional Commit specification. Given the git changes below, please generate a commit message for me:
+							[[You are an expert at following Conventional Commits and commitlint rules. Generate a commit message following these STRICT rules:
+
+COMMITLINT RULES (MANDATORY):
+- type-enum: ONLY use: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+- scope-empty: MUST have a scope (never empty)
+- type-case: type MUST be lowercase
+- subject-case: subject MUST be lowercase
+- subject-empty: subject MUST NOT be empty
+- subject-full-stop: subject MUST NOT end with period
+- header-max-length: first line MUST be ≤ 72 characters
+
+FORMAT: type(scope): subject
 
 Current branch: %s
 
-1. First line: conventional commit format type(%s): concise description
-   - Include the branch name in parentheses after the type
-   - Use semantic types like feat, fix, docs, style, refactor, perf, test, chore, etc.
-2. Optional bullet points if more context helps:
-   - Keep the second line blank
-   - Keep them short and direct
-   - Focus on what changed
-   - Always be terse
-   - Don't overly explain
-   - Drop any fluffy or formal language
+SCOPE RULES:
+- Use branch name as scope: %s
+- If branch has prefixes like "feature/", "fix/", use the part after "/"
+- Keep scope concise and lowercase
 
-Return ONLY the commit message - no introduction, no explanation, no quotes around it.
+EXAMPLES:
+feat(auth): add jwt token validation
+fix(api): resolve cors headers issue  
+docs(readme): update installation steps
+test(user): add login validation tests
 
-Examples (for a branch called "feature/auth"):
-feat(feature/auth): add user auth system
+Body (optional):
+- Leave blank line after header
+- Use bullet points for multiple changes
+- Keep concise and technical
+- No fluff or formal language
 
-- Add JWT tokens for API auth
-- Handle token refresh for long sessions
+STRICT REQUIREMENTS:
+- Header ≤ 72 chars
+- All lowercase except proper nouns
+- No period at end of subject
+- Must have scope
+- Return ONLY the commit message
 
-fix(bugfix/memory): resolve memory leak in worker pool
-
-- Clean up idle connections
-- Add timeout for stale workers
-
-Simple change example:
-fix(docs/update): typo in README.md
-
-Very important: 
-- Do not respond with any of the examples
-- Always use the actual branch name: %s
-- Your message must be based off the changes provided below
-
+Current branch: %s
 Changes:
 %s
 ]],
@@ -129,18 +133,24 @@ Changes:
 							},
 							action = function()
 								local contents = vim.api.nvim_buf_get_lines(0, 0, -1, true)
-
-								local cmd = string.format('!git commit -m "%s"', table.concat(contents, '" -m "'))
-								cmd = (cmd:gsub(".", {
-									["#"] = "\\#",
-								}))
-
-								vim.api.nvim_command(cmd)
-								-- Optional: Open lazygit after commit (uncomment if desired)
-								-- vim.schedule(function()
-								--   require("snacks").lazygit()
-								-- end)
-								vim.notify("Commit created successfully!", vim.log.levels.INFO)
+								local commit_msg = table.concat(contents, "\n")
+								
+								-- Escribir mensaje a archivo temporal y usar git commit -F
+								local temp_file = vim.fn.tempname()
+								vim.fn.writefile(vim.split(commit_msg, "\n"), temp_file)
+								
+								local result = vim.fn.system(string.format('git commit -F %s', temp_file))
+								vim.fn.delete(temp_file)
+								
+								if vim.v.shell_error == 0 then
+									vim.notify("Commit created successfully!", vim.log.levels.INFO)
+									-- Abrir lazygit después del commit
+									vim.schedule(function()
+										require("snacks").lazygit()
+									end)
+								else
+									vim.notify("Commit failed: " .. result, vim.log.levels.ERROR)
+								end
 							end,
 						},
 					},
