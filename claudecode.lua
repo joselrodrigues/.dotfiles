@@ -17,25 +17,28 @@ return {
       desc = "Add file",
       ft = { "NvimTree", "neo-tree", "oil", "minifiles" },
     },
-    -- Diff management with auto-reopen
+    -- Diff management with safer cleanup
     { "<leader>aa", function()
         vim.cmd("ClaudeCodeDiffAccept")
-        -- Clean old buffers and reopen Claude after accepting
+        -- Safer cleanup after accepting
         vim.defer_fn(function()
-          vim.cmd("ClaudeCleanBuffers")
-          vim.cmd("ClaudeCodeFocus")
-        end, 300)
+          pcall(vim.cmd, "ClaudeCleanBuffers")
+          vim.defer_fn(function()
+            pcall(vim.cmd, "ClaudeCodeFocus")
+          end, 100)
+        end, 500)
       end, desc = "Accept diff and reopen Claude" },
     { "<leader>ad", function()
         vim.cmd("ClaudeCodeDiffDeny") 
-        -- Clean old buffers and reopen Claude after denying
+        -- Safer cleanup after denying
         vim.defer_fn(function()
-          vim.cmd("ClaudeCleanBuffers")
-          vim.cmd("ClaudeCodeFocus")
-        end, 300)
+          pcall(vim.cmd, "ClaudeCleanBuffers")
+          vim.defer_fn(function()
+            pcall(vim.cmd, "ClaudeCodeFocus")
+          end, 100)
+        end, 500)
       end, desc = "Deny diff and reopen Claude" },
     -- Custom toggle key
-    { "<leader>lc", "<cmd>ClaudeCodeFocus<cr>", desc = "Launch Claude", mode = { "n", "x" } },
     { "<leader>ax", "<cmd>ClaudeCleanBuffers<cr>", desc = "Clean Claude buffers" },
   },
   opts = {
@@ -88,20 +91,39 @@ return {
   config = function(_, opts)
     require("claudecode").setup(opts)
     
-    -- Command to manually clean Claude buffers
+    -- Command to safely clean Claude buffers
     vim.api.nvim_create_user_command("ClaudeCleanBuffers", function()
       local cleaned = 0
+      local current_buf = vim.api.nvim_get_current_buf()
+      
       for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-        if vim.api.nvim_buf_is_valid(buf) then
+        if vim.api.nvim_buf_is_valid(buf) and buf ~= current_buf then
           local buf_name = vim.api.nvim_buf_get_name(buf)
-          if buf_name:match("Claude Code.*") then
-            pcall(vim.api.nvim_buf_delete, buf, { force = true })
-            cleaned = cleaned + 1
+          -- More specific pattern and avoid deleting active buffers
+          if buf_name:match("Claude Code.*") and not vim.api.nvim_buf_get_option(buf, 'modified') then
+            -- Check if buffer is not in use by any window
+            local in_use = false
+            for _, win in ipairs(vim.api.nvim_list_wins()) do
+              if vim.api.nvim_win_get_buf(win) == buf then
+                in_use = true
+                break
+              end
+            end
+            
+            if not in_use then
+              local ok = pcall(vim.api.nvim_buf_delete, buf, { force = false })
+              if ok then
+                cleaned = cleaned + 1
+              end
+            end
           end
         end
       end
-      vim.notify("Cleaned " .. cleaned .. " Claude buffers", vim.log.levels.INFO)
-    end, { desc = "Clean all Claude Code buffers" })
+      
+      if cleaned > 0 then
+        vim.notify("Cleaned " .. cleaned .. " Claude buffers", vim.log.levels.INFO)
+      end
+    end, { desc = "Safely clean Claude Code buffers" })
     
     -- Simple auto-hide when Claude diff appears
     vim.api.nvim_create_autocmd("BufEnter", {
